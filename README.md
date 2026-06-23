@@ -1,1 +1,0 @@
-# test_for_senior_in_3d_team
