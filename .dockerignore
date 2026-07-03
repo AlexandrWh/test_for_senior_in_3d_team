@@ -1,0 +1,14 @@
+data/
+venv/
+.git/
+__pycache__/
+**/__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.cursor/
+*.png
+*.jpg
+*.jfif
+data/pipeline_debug/
+data/api_golden/
+data/api_test/

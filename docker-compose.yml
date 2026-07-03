@@ -1,0 +1,12 @@
+services:
+  head-align:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      HEAD_ALIGN_DEVICE: cpu
+      HEAD_ALIGN_SPACING_MM: "4.0"
+      HEAD_ALIGN_CLS_CKPT: /app/weights/head_align_cls_best_v2.pt
+      HEAD_ALIGN_POSE_CKPT: /app/weights/head_align_pose_best_v2.pt
+    volumes:
+      - ./weights:/app/weights:ro

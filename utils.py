@@ -18,10 +18,12 @@ def read_dicom_series(dicom_dir: str | Path) -> sitk.Image:
     if not series_ids:
         raise ValueError(f"No DICOM series found in {dicom_dir}")
 
-    # Если серий несколько, берём первую. 
-    # Может понадобиться, если вы захотели использовать публичные данные в формате DICOM, но при наличии 
-    # нескольких серий для одного пациента будет работать некорректно
-    series_file_names = reader.GetGDCMSeriesFileNames(dicom_dir, series_ids[0])
+    # Если серий несколько, берём самую длинную (типичный случай для CQ500: scout + head CT).
+    series_id = max(
+        series_ids,
+        key=lambda sid: len(reader.GetGDCMSeriesFileNames(dicom_dir, sid)),
+    )
+    series_file_names = reader.GetGDCMSeriesFileNames(dicom_dir, series_id)
 
     reader.SetFileNames(series_file_names)
     image = reader.Execute()
@@ -32,8 +34,34 @@ def read_dicom_series(dicom_dir: str | Path) -> sitk.Image:
 def read_nifti(path: str | Path) -> sitk.Image:
     """
     Читает NIFTI/NIFTI.GZ как SimpleITK Image.
+    Приводит ориентацию к конвенции golden CQ500 (см. canonicalize_cq500_orientation).
     """
-    return sitk.ReadImage(str(path))
+    return canonicalize_cq500_orientation(sitk.ReadImage(str(path)))
+
+
+def canonicalize_cq500_orientation(image: sitk.Image) -> sitk.Image:
+    """
+    Приводит CT к той же ориентации, что golden NIfTI из data/volumes.
+
+    У golden direction[1,1] (связь index-Y -> physical-Y) отрицательный; у сырых
+    DICOM->NIfTI — положительный. Без флипа сагитталь в MPR выглядит зеркально,
+    а детектор/pose (обучены на golden) дают плохие результаты.
+
+    Idempotent: тома, уже совпадающие с golden, не меняются.
+    """
+    if image.GetDirection()[4] > 0:
+        return sitk.Flip(image, flipAxes=(False, True, False))
+    return image
+
+
+def reorient_nifti_file(path: str | Path) -> bool:
+    """Перезаписывает NIfTI в canonical frame, если нужен Y-flip. Возвращает True если файл изменён."""
+    path = Path(path)
+    raw = sitk.ReadImage(str(path))
+    if raw.GetDirection()[4] <= 0:
+        return False
+    sitk.WriteImage(canonicalize_cq500_orientation(raw), str(path), useCompression=True)
+    return True
 
 
 def sitk_image_to_numpy(image: sitk.Image) -> np.ndarray:
