@@ -78,7 +78,9 @@ QC ручных guides + экспорт численных targets для обу
 
 Прогон **HeadAligner** на test volumes: infer @ 4 mm, apply @ 1 mm.
 
-- **Вход:** `data/cq500_test/volumes/`, оба чекпоинта
+- **API (default):** `--service-url http://localhost:8000` или env `ALIGN_SERVICE_URL`
+- **Офлайн:** `--offline --device cuda`
+- **Вход:** `data/cq500_test/volumes/`
 - **Выход:** `align/volumes/`, `align/meta/{case}.json`, `align/results.csv`
 
 ---
@@ -116,4 +118,4 @@ render_guide_annotation_mpr
   → eval_mask_residual_angles
 ```
 
-См. также [PIPELINE_COMMANDS.txt](../PIPELINE_COMMANDS.txt).
+См. также [PIPELINE_COMMANDS.txt](../PIPELINE_COMMANDS.txt) и [API.md](./API.md).

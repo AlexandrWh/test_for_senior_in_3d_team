@@ -235,12 +235,10 @@ Sanity-кейсы из ТЗ: `CQ500CT06`, `CQ500CT243` (уже ровные), `C
 
 ---
 
-## Следующий этап (вне текущего отчёта)
+## Следующий этап
 
-По [TASK.md](./TASK.md), запланировано:
+- [x] FastAPI + Docker + golden через HTTP
+- [ ] docker-compose с GPU profile (опционально)
+- [ ] экспорт affine в отдельный файл NIfTI/sidecar (сейчас в meta.json)
 
-- FastAPI-сервис: upload NIfTI → aligned NIfTI + affine
-- Docker / docker-compose
-- Документация запуска сервиса
-
-Текущий ML-пайплайн и оценка качества готовы; inference через `HeadAligner` и golden-скрипты.
+Текущий inference: `HeadAligner` in-process или `POST /align`.

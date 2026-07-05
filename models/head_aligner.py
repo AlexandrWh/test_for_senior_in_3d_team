@@ -22,7 +22,7 @@ from paths import (
 )
 from utils import center_crop_pad_yx
 from utils.angles import full_align_apply_euler_cw, pose_apply_euler_cw, prealign_apply_euler_cw
-from utils.rigid import apply_rigid_volume_zyx
+from utils.rigid import apply_rigid_volume_zyx, compute_full_align_affine_4x4
 
 
 def align_volume(
@@ -160,13 +160,27 @@ def apply_full_align(
         default_value=0.0,
         interpolator=interp,
     )
+    affine_4x4 = compute_full_align_affine_4x4(
+        vol,
+        params,
+        rz_pose=rz_pose,
+        ry_pose=ry_pose,
+        rx_pose=rx_pose,
+        spacing_mm=spacing_mm,
+    )
     meta: dict[str, object] = {
         "ok": True,
         "has_head": True,
         "spacing_mm": float(spacing_mm),
         "apply_euler_zyx_scipy_rad": [rz_s, ry_s, rx_s],
+        "affine_4x4_input_to_output": affine_4x4,
+        "affine_note": (
+            "4x4 maps physical XYZ in prepared input (1mm square crop, origin 0) "
+            "to aligned output physical XYZ."
+        ),
         "crop_shape": list(cropped.shape),
         "out_shape": list(vol_out.shape),
+        "z_lo_vox": int(z_lo),
     }
     return vol_out, meta
 

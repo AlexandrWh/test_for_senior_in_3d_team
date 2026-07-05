@@ -1,0 +1,12 @@
+services:
+  align-api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./weights:/app/weights:ro
+    environment:
+      ALIGN_DEVICE: ${ALIGN_DEVICE:-cpu}
+      PRE_ALIGN_CKPT: /app/weights/pre_aligner_best.pt
+      POSE_CKPT: /app/weights/pose_regressor_best.pt
+    restart: unless-stopped

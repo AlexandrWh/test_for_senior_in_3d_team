@@ -1,0 +1,59 @@
+{
+  "n_meta": 100,
+  "n_ok": 90,
+  "n_skipped": 10,
+  "spacing_mm": 1.0,
+  "align_meta_dir": "D:\\Projects\\test_for_senior_in_3d_team\\data\\cq500_test\\align\\meta",
+  "stats_deg": {
+    "rz_eyes_deg": {
+      "n": 90,
+      "mean": 2.1610061333280814,
+      "median": 2.053713335603904,
+      "p90": 4.191895641131573,
+      "max": 8.017409275852001
+    },
+    "rz_ears_deg": {
+      "n": 90,
+      "mean": 2.211827874856982,
+      "median": 1.9495372888633569,
+      "p90": 4.28639751655592,
+      "max": 9.099464175730542
+    },
+    "ry_eyes_deg": {
+      "n": 90,
+      "mean": 1.6230444645335151,
+      "median": 1.1264703215909322,
+      "p90": 3.701177157095453,
+      "max": 5.74396448888124
+    },
+    "ry_ears_deg": {
+      "n": 90,
+      "mean": 1.5634337992239398,
+      "median": 1.1851660465422205,
+      "p90": 3.1573101660240233,
+      "max": 5.7738205377262055
+    },
+    "rx_om_deg": {
+      "n": 90,
+      "mean": 10.287681825420766,
+      "median": 7.3805195105768755,
+      "p90": 25.814449963369537,
+      "max": 36.24269292925187
+    },
+    "rz_max_deg": {
+      "n": 90,
+      "mean": 2.601268627204655,
+      "median": 2.448505604298024,
+      "p90": 4.435039542769306,
+      "max": 9.099464175730542
+    },
+    "ry_max_deg": {
+      "n": 90,
+      "mean": 1.9317171131140112,
+      "median": 1.7326856959319392,
+      "p90": 4.234591491998586,
+      "max": 5.7738205377262055
+    }
+  },
+  "note": "Residual |tilt| after HeadAligner apply on eye/ear masks. rz/ry: L-R segment vs horizontal on axial/coronal; rx: sagittal eye-mid\u2192ear-mid vs horizontal."
+}

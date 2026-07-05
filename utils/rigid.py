@@ -183,3 +183,55 @@ def save_volume_nifti(vol_zyx: np.ndarray, path: Path | str, *, spacing_mm: floa
 
 def load_volume_nifti(path: Path | str) -> np.ndarray:
     return sitk_image_to_numpy(sitk.ReadImage(str(path))).astype(np.float32)
+
+
+def volume_to_nifti_bytes(vol_zyx: np.ndarray, *, spacing_mm: float) -> bytes:
+    """Serialize [Z,Y,X] volume to gzipped NIfTI bytes."""
+    import tempfile
+
+    img = vol_zyx_to_sitk(vol_zyx, spacing_mm=spacing_mm)
+    with tempfile.NamedTemporaryFile(suffix=".nii.gz", delete=False) as tmp:
+        tmp_path = tmp.name
+    try:
+        sitk.WriteImage(img, tmp_path, useCompression=True)
+        return Path(tmp_path).read_bytes()
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
+def compute_full_align_affine_4x4(
+    vol_zyx: np.ndarray,
+    params: object,
+    *,
+    rz_pose: float,
+    ry_pose: float,
+    rx_pose: float,
+    spacing_mm: float,
+) -> list[list[float]]:
+    """
+  4x4 affine (homogeneous): physical point in prepared input volume -> aligned output.
+
+  Input/output space: isotropic spacing, origin (0,0,0), identity direction (SimpleITK XYZ).
+  Includes Z-crop offset and the same rigid as apply_full_align.
+    """
+    from models.pre_aligner import PreAlignParams
+    from utils.angles import full_align_apply_euler_cw
+
+    if not isinstance(params, PreAlignParams):
+        raise TypeError(f"expected PreAlignParams, got {type(params)!r}")
+
+    z_lo, z_hi = params.z_span_voxels(spacing_mm)
+    crop_z = int(z_hi) - int(z_lo) + 1
+    crop_shape = (crop_z, int(vol_zyx.shape[1]), int(vol_zyx.shape[2]))
+    dx_vox, dy_vox = params.shift_xy_voxels(spacing_mm)
+    rz_s, ry_s, rx_s = full_align_apply_euler_cw(params.rz, rz_pose, ry_pose, rx_pose)
+    rotvec = Rotation.from_euler("ZYX", [rz_s, ry_s, rx_s]).as_rotvec()
+    trans_mm = voxel_shift_zyx_to_trans_mm_post_rotate(
+        rotvec, (0.0, dy_vox, dx_vox), spacing_mm=float(spacing_mm)
+    )
+    ct = vol_zyx_to_sitk(np.zeros(crop_shape, dtype=np.float32), spacing_mm=float(spacing_mm))
+    center = np.array(image_center_physical(ct), dtype=np.float64)
+    a_rigid = build_affine_4x4(rotvec, trans_mm, center)
+    t_crop = np.eye(4, dtype=np.float64)
+    t_crop[2, 3] = -float(z_lo) * float(spacing_mm)
+    return (a_rigid @ t_crop).tolist()

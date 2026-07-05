@@ -78,15 +78,29 @@ python -u scripts/train_pose.py --device cuda --epochs 100 --batch-size 4 --val-
 
 # =============================================================================
 
-# Golden eval: HeadAligner (infer @ 4mm, save head @ 1mm)
+# Golden eval: HeadAligner HTTP API (default) or offline
 
 # =============================================================================
 
 
 
-python -u scripts/run_head_align_golden.py --device cuda
+# 1. Поднять сервис
+
+docker compose up --build -d
+
+
+
+# 2. Прогон golden через API (те же пути, что офлайн)
+
+python -u scripts/run_head_align_golden.py --service-url http://localhost:8000
 
 python -u scripts/render_align_previews.py
+
+
+
+# Офлайн (без Docker):
+
+# python -u scripts/run_head_align_golden.py --offline --device cuda
 
 
 

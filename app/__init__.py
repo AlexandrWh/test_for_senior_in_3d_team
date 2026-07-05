@@ -1,0 +1,1 @@
+"""Head alignment HTTP API."""

@@ -1,0 +1,12 @@
+data/
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+.cursor/
+.git/
+data/cq500_test/
+data/cq500_train/volumes/
+weights/*.pt

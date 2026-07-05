@@ -130,6 +130,18 @@ Golden-метрика по маскам **после** HeadAligner:
 
 ---
 
+## `app/` (HTTP API)
+
+| Файл | Роль |
+|------|------|
+| `main.py` | FastAPI: `/health`, `POST /align` → ZIP |
+| `align_service.py` | HeadAligner wrapper, сборка `aligned.nii.gz` + `meta.json` |
+| `config.py` | env: `ALIGN_DEVICE`, пути к весам |
+
+См. [API.md](./API.md).
+
+---
+
 ## Связи между модулями
 
 ```
