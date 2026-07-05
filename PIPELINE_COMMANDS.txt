@@ -106,13 +106,13 @@ python -u scripts/render_align_previews.py
 
 # Результат:
 
-#   data/cq500_test/align/volumes/{case}.nii.gz   @ 1 mm
+#   data/cq500_test/align/volumes/{case}.nii.gz   @ 1 mm  (локально, не в git)
 
-#   data/cq500_test/align/meta/{case}.json
+#   data/cq500_test/align/meta/{case}.json      (локально)
 
-#   data/cq500_test/align/results.csv
+#   data/cq500_test/align/results.csv           (локально)
 
-#   data/cq500_test/align/previews/{case}_before_after.png
+#   data/cq500_test/align/previews/{case}_before_after.png  (в git)
 
 
 

@@ -11,6 +11,7 @@
 - `data/cq500_train/*`, `data/cq500_test/*`
 - `SPACING_MM = 4.0` (infer), `APPLY_SPACING_MM = 1.0` (финальный NIfTI)
 - пути к весам, pose dataset, align output, mask residual
+- `data/cq500_test/align/previews/` — golden PNG (в git)
 - гиперпараметры аугментации pose (`POSE_AUG_RANGE_PI`, `POSE_AUG_PER_CASE`)
 
 ---

@@ -221,7 +221,7 @@ Val — на синтетических **residual** labels после aug ±10.
 | ry_pose | −0.1° | 3.1° | 12.6° |
 | rx_pose | −0.4° | 1.1° | 5.9° |
 
-Качественно: `data/cq500_test/align/previews/{case}_before_after.png`.  
+Качественно: `data/cq500_test/align/previews/{case}_before_after.png` — **в git**, можно оценить без прогона пайплайна.  
 Sanity-кейсы из ТЗ: `CQ500CT06`, `CQ500CT243` (уже ровные), `CQ500CT48` (нужен поворот).
 
 ### 7.4 Mask residual (90/100 кейсов, после align)

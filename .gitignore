@@ -13,6 +13,10 @@ data/cq500_train/*
 data/cq500_test/*
 !data/cq500_test/mask_residual/
 !data/cq500_test/mask_residual/**
+!data/cq500_test/align/
+data/cq500_test/align/*
+!data/cq500_test/align/previews/
+!data/cq500_test/align/previews/**
 
 venv/
 __pycache__/

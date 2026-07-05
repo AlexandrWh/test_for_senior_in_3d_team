@@ -90,7 +90,7 @@ QC ручных guides + экспорт численных targets для обу
 PNG **до/после**: raw @ 1 mm vs aligned head @ 1 mm, сетка 2×3 MPR + углы в footer.
 
 - **Вход:** raw volumes + `align/volumes/` + `align/meta/`
-- **Выход:** `align/previews/{case}_before_after.png`
+- **Выход:** `align/previews/{case}_before_after.png` (PNG коммитятся в git; volumes/meta — локально)
 
 ---
 
