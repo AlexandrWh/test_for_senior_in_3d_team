@@ -1,0 +1,124 @@
+# CQ500 pipeline: разметка → train → golden eval
+
+# Запускать из корня репозитория (где paths.py).
+
+
+
+# =============================================================================
+
+# 0. MPR для ручной разметки (новые кейсы)
+
+# =============================================================================
+
+
+
+python -u scripts/render_guide_annotation_mpr.py
+
+
+
+# =============================================================================
+
+# 1. Аннотатор guide-линий
+
+# =============================================================================
+
+
+
+python -u scripts/guide_line_annotator.py
+
+
+
+# =============================================================================
+
+# 2. Экспорт guide_labels.json
+
+# =============================================================================
+
+
+
+python -u scripts/export_guide_labels.py
+
+
+
+# =============================================================================
+
+# 3. Обучение PreAligner
+
+# =============================================================================
+
+
+
+python -u scripts/train_z_head_slice_cls.py --device cuda
+
+
+
+# =============================================================================
+
+# 4. Генерация pose dataset
+
+# =============================================================================
+
+
+
+python -u scripts/generate_pose_dataset.py --device cuda
+
+
+
+# =============================================================================
+
+# 5. Обучение pose regressor
+
+# =============================================================================
+
+
+
+python -u scripts/train_pose.py --device cuda --epochs 100 --batch-size 4 --val-frac 0.2 --lr 1e-3
+
+
+
+# =============================================================================
+
+# Golden eval: HeadAligner (infer @ 4mm, save head @ 1mm)
+
+# =============================================================================
+
+
+
+python -u scripts/run_head_align_golden.py --device cuda
+
+python -u scripts/render_align_previews.py
+
+
+
+# Результат:
+
+#   data/cq500_test/align/volumes/{case}.nii.gz   @ 1 mm
+
+#   data/cq500_test/align/meta/{case}.json
+
+#   data/cq500_test/align/results.csv
+
+#   data/cq500_test/align/previews/{case}_before_after.png
+
+
+
+# =============================================================================
+
+# Mask residual angles (aligned eye/ear masks, post-HeadAligner)
+
+# =============================================================================
+
+
+
+python -u scripts/eval_mask_residual_angles.py
+
+
+
+# Результат:
+
+#   data/cq500_test/mask_residual/residual_angles.csv
+
+#   data/cq500_test/mask_residual/summary.json
+
+#   data/cq500_test/mask_residual/meta/{case}.json
+

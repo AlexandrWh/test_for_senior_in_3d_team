@@ -1,164 +1,181 @@
-# Head CT orientation normalization
+# CQ500 head alignment
 
-Автоматическое **3D-выравнивание головы** на КТ: детектор ориентации (heuristics + PCA) + pose-сеть, HTTP API с Docker, экспорт выровненного NIfTI и аффинной матрицы.
+Двухстадийный ML-пайплайн: **PreAligner** (Z-span + axial PCA) + **PoseRegressor3D** (остаточные rz, ry, rx) → выровненная голова @ 1 mm.
 
-Постановка задачи: [TASK.md](./TASK.md).
+**Отчёт по исследованию:** [REPORT.md](./REPORT.md)  
+**Справочник по скриптам:** [docs/SCRIPTS.md](./docs/SCRIPTS.md)  
+**Справочник по модулям:** [docs/MODULES.md](./docs/MODULES.md)
 
-## Быстрый старт (Docker)
+> HTTP API, Docker и экспорт affine — **следующий этап** (см. конец отчёта).
 
-```bash
-# 1. Скачать данные — см. docs/data.md (веса уже в weights/)
-# 2. docker compose up --build
-```
+---
 
-Сервис: **http://localhost:8000**
-
-```bash
-curl http://localhost:8000/health
-```
-
-## Быстрый старт (локально)
+## Установка
 
 ```bash
 python -m venv venv
 # Windows: venv\Scripts\activate
-# Linux/macOS: source venv/bin/activate
-
 pip install -r requirements.txt
-
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Переменные окружения (опционально):
+Нужен GPU для обучения и golden eval (`--device cuda`). CPU — только для разметки и экспорта labels.
 
-| Переменная | По умолчанию |
-|------------|----------------|
-| `HEAD_ALIGN_CLS_CKPT` | `weights/head_align_cls_best_v2.pt` |
-| `HEAD_ALIGN_POSE_CKPT` | `weights/head_align_pose_best_v2.pt` |
-| `HEAD_ALIGN_DEVICE` | `auto` (cuda если есть) |
-| `HEAD_ALIGN_SPACING_MM` | `4.0` |
-| `HEAD_ALIGN_CLS_THRESHOLD` | `0.5` |
+---
 
-## API
+## Что за что отвечает
 
-### `GET /health`
+| Часть репозитория | Назначение |
+|-------------------|------------|
+| `paths.py` | Все пути к данным и константы (spacing 4 mm / 1 mm, веса) |
+| `models/` | Нейросети и inference: Z-классификатор, PCA-prealign, pose CNN, **HeadAligner** |
+| `datasets/` | PyTorch-датасеты для train Z-cls и pose |
+| `utils/` | I/O NIfTI, углы, rigid-трансформы, парсинг guide-разметки, mask-eval |
+| `scripts/` | CLI: разметка → train → golden → метрики |
+| `weights/` | Чекпоинты `pre_aligner_best.pt`, `pose_regressor_best.pt` (после обучения) |
+| `data/` | Данные **не в git** — кладёте локально (см. ниже) |
 
-Статус сервиса и описание пайплайна (`pipeline` в JSON).
+**Точка входа inference:**
 
-### `POST /align`
+```python
+import torch
+from models.head_aligner import HeadAligner
 
-- **Body:** `multipart/form-data`, поле `file` — `.nii` / `.nii.gz`
-- **Response:** gzip NIfTI (выровненный infer-slab, HU)
-- **Header:** `X-Align-Meta` — JSON с `affine_4x4`, углами, `cls_prob`, `geodesic_deg`, `detector_rotz_deg`, `frame`, `pipeline`
+aligner = HeadAligner.from_checkpoints(device=torch.device("cuda"))
+result = aligner.align("path/to/scan.nii.gz", device=torch.device("cuda"))
+# result.volume_aligned_1mm  — numpy [Z,Y,X] @ 1 mm, brain window
+# result.rz_pca_rad, result.rz_pose_rad, result.ry_pose_rad, result.rx_pose_rad
+```
 
-Пример:
+---
+
+## Раскладка данных
+
+Volumes и маски **в репозиторий не кладём** — скачиваются отдельно ([ссылка в TASK.md](./TASK.md)).  
+**Сырую разметку после аннотатора** — кладём в git (лёгкие JSON).
+
+```
+data/
+├── cq500_train/                          # обучение
+│   ├── volumes/                          # ← NIfTI train (локально, не в git)
+│   │   └── CQ500CT*.nii.gz
+│   ├── no_heads.txt                      # case_id без головы (негативы Z-cls)
+│   ├── cq500_train_mpr_1mm/              # PNG для разметки (генерируется)
+│   │   ├── manifest.json
+│   │   └── CQ500CT*_axial.png, *_coronal.png, *_sagittal.png
+│   ├── cq500_train_guides/               # ← сюда JSON после аннотатора (можно в git)
+│   │   └── CQ500CT*.json
+│   ├── cq500_train_guides_analysis/      # экспорт углов
+│   │   └── guide_labels.json
+│   ├── z_head_slice_cls/                 # .npy срезы для Z-классификатора
+│   │   ├── positive/
+│   │   └── negative/
+│   └── pose_dataset/                     # синтетика для pose (генерируется)
+│       ├── volumes/
+│       └── meta/
+│
+├── cq500_test/                           # golden / test
+│   ├── volumes/                          # ← 100 тестовых NIfTI (локально)
+│   ├── masks/                            # ← TotalSegmentator (локально)
+│   │   └── CQ500CT*/
+│   │       ├── brain_structures/
+│   │       └── head_glands_cavities/
+│   ├── align/                            # результат HeadAligner
+│   │   ├── volumes/
+│   │   ├── meta/
+│   │   ├── results.csv
+│   │   └── previews/
+│   └── mask_residual/                    # метрика по маскам глаз/ушей
+│
+├── train_logs/                           # логи обучения
+└── ...
+weights/
+    ├── pre_aligner_best.pt
+    └── pose_regressor_best.pt
+```
+
+**Минимум для старта разметки:** положить train volumes в `data/cq500_train/volumes/`.  
+**После аннотатора:** JSON в `data/cq500_train/cq500_train_guides/`.
+
+---
+
+## Воспроизведение: порядок команд
+
+Все команды — из **корня репозитория** (где `paths.py`).  
+Полный список дублируется в [PIPELINE_COMMANDS.txt](./PIPELINE_COMMANDS.txt).
+
+### 0. Подготовка данных
+
+1. Скачать датасет из ТЗ, распаковать.
+2. Train volumes → `data/cq500_train/volumes/`
+3. Test volumes → `data/cq500_test/volumes/`
+4. Test masks → `data/cq500_test/masks/` (для eval по маскам)
+
+### 1. Разметка (train)
 
 ```bash
-curl -X POST http://127.0.0.1:8000/align \
-  -F "file=@data/volumes/CQ500CT48.nii.gz" \
-  -o aligned.nii.gz -D -
+# MPR PNG @ 1 mm для кликов в аннотаторе
+python -u scripts/render_guide_annotation_mpr.py
+
+# Интерактивная разметка guide-линий → JSON в cq500_train_guides/
+python -u scripts/guide_line_annotator.py
+
+# Экспорт углов + Z-span → guide_labels.json
+python -u scripts/export_guide_labels.py
 ```
 
-Smoke-тест + превью:
+### 2. Обучение PreAligner (Z-классификатор срезов)
 
 ```bash
-python scripts/test_align_api.py --input data/volumes/CQ500CT48.nii.gz
-# → data/api_test/CQ500CT48_aligned.nii.gz, *_before_after.png
+python -u scripts/train_z_head_slice_cls.py --device cuda
+# → weights/pre_aligner_best.pt
 ```
 
-### `POST /align-with-meta`
-
-Multipart: `aligned_head.nii.gz` + `meta.json`.
-
-## Оценка на golden (100 кейсов)
+### 3. Генерация pose dataset + обучение pose
 
 ```bash
-python scripts/run_export_golden.py
-python scripts/preview_api_golden.py
+python -u scripts/generate_pose_dataset.py --device cuda
+python -u scripts/train_pose.py --device cuda --epochs 100 --batch-size 4 --val-frac 0.2 --lr 1e-3
+# → weights/pose_regressor_best.pt
 ```
 
-Итог: `data/api_golden/results.csv`, `aligned/`, `previews/`.
-
-Через HTTP (нужен запущенный сервер):
+### 4. Golden eval (test, 100 кейсов)
 
 ```bash
-python scripts/run_api_golden.py
+python -u scripts/run_head_align_golden.py --device cuda
+python -u scripts/render_align_previews.py
 ```
 
-Метрики: [docs/evaluation.md](./docs/evaluation.md). Сводная таблица: [docs/golden_results.csv](./docs/golden_results.csv).
+Результат: `data/cq500_test/align/volumes/*.nii.gz` @ 1 mm, meta, CSV, PNG before/after.
 
-## Воспроизведение обучения
+### 5. Оценка качества по маскам (test)
 
-Требуется train split CQ500 в `data/cq500_train/` (см. [docs/data.md](./docs/data.md)).
-
-### 1. Генерация синтетического датасета
-
-Случайный rigid misalignment на «идеальных» головах + негативы (торс без головы):
+Нужны предсказания из шага 4 и маски TotalSegmentator.
 
 ```bash
-python scripts/generate_dataset.py --clean
+python -u scripts/eval_mask_residual_angles.py
 ```
 
-Выход:
+Результат: `data/cq500_test/mask_residual/summary.json` — остаточный наклон линий глаз/ушей **после** align.
 
-- `data/head_align_cls/{train,val}/*.npz`
-- `data/head_align_pose/{train,val}/*.npz`
+---
 
-### 2. Обучение cls
+## Только inference (уже обученные веса)
 
 ```bash
-python scripts/train_cls.py --epochs 80 --tag v2
-# best → weights/head_align_cls_best_v2.pt
+pip install -r requirements.txt
+# положить веса в weights/
+python -u scripts/run_head_align_golden.py --device cuda
+python -u scripts/render_align_previews.py
+python -u scripts/eval_mask_residual_angles.py   # опционально, нужны masks
 ```
 
-Loss: `BCEWithLogits`. Метрика val: accuracy.
+---
 
-### 3. Обучение pose
+## Рекомендуемые кейсы из ТЗ
 
-```bash
-python scripts/train_pose.py --epochs 400 --base-channels 32 --loss geo --tag v2
-# best → weights/head_align_pose_best_v2.pt
-```
+| Кейс | Ожидание |
+|------|----------|
+| `CQ500CT06`, `CQ500CT243` | уже выровнены |
+| `CQ500CT48` | заметный поворот, хороший sanity-check |
 
-Loss: geodesic angle (rad). Метрика val: MAE geodesic (deg).
-
-### 4. Eval / debug
-
-```bash
-python scripts/run_pipeline.py --case-id CQ500CT48 --save-previews
-python scripts/debug_pipeline.py --step 3 --case-id CQ500CT48
-```
-
-## Структура репозитория
-
-```
-app/                 # FastAPI
-head_align/          # пайплайн, модели, геометрия
-weights/             # чекпоинты cls/pose (v2)
-scripts/             # dataset, train, eval
-docs/                # архитектура, данные, eval
-utils.py             # I/O, resample, transforms (см. UTILS.md)
-Dockerfile
-docker-compose.yml
-REPORT.md            # отчёт по заданию
-```
-
-## Документация
-
-- [docs/architecture.md](./docs/architecture.md) — дизайн пайплайна
-- [docs/data.md](./docs/data.md) — скачивание данных и чекпоинтов
-- [docs/evaluation.md](./docs/evaluation.md) — метрики golden / val
-- [UTILS.md](./UTILS.md) — хелперы `utils.py`
-- [REPORT.md](./REPORT.md) — полный отчёт
-
-## Зависимости
-
-- Python 3.11+
-- PyTorch, SimpleITK, FastAPI — см. `requirements.txt`
-- Conda: `environment.yml` (рекомендуется `pip install -r requirements.txt` для torch)
-
-## Лицензии и источники
-
-- КТ: CQ500 (Kaggle / qure.ai)
-- Маски: [TotalSegmentator](https://github.com/wasserth/totalsegmentator)
-- В разработке использовались AI-ассистенты (Cursor / Claude)
+Превью: `data/cq500_test/align/previews/{case}_before_after.png`.
