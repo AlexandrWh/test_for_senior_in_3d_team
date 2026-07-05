@@ -1,0 +1,51 @@
+{
+  "case_id": "CQ500CT308",
+  "images_dir": "D:\\Projects\\test_for_senior_in_3d_team\\data\\cq500_train_mpr_1mm",
+  "spacing_mm": 1.0,
+  "planes": {
+    "axial": {
+      "png": "CQ500CT308_axial.png",
+      "p0": [
+        158.824,
+        247.88264000000004
+      ],
+      "p1": [
+        130.21300000000002,
+        53.77664000000004
+      ],
+      "shape_yx": [
+        228,
+        228
+      ],
+      "slice_index": 72
+    },
+    "coronal": {
+      "png": "CQ500CT308_coronal.png",
+      "p0": [
+        143.77178571428567,
+        168.71587142857146
+      ],
+      "p1": [
+        145.46571428571428,
+        33.20158571428573
+      ],
+      "shape_yx": [
+        145,
+        228
+      ],
+      "slice_index": 114
+    },
+    "sagittal": {
+      "png": "CQ500CT308_sagittal.png",
+      "p0": null,
+      "p1": null,
+      "shape_yx": [
+        145,
+        228
+      ],
+      "slice_index": 114
+    }
+  },
+  "complete": false,
+  "annotated_at": "2026-07-04T12:04:51.320754+00:00"
+}

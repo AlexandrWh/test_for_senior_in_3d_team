@@ -1,0 +1,207 @@
+{
+  "history": [
+    {
+      "phase": "cycle1",
+      "epoch": 1,
+      "train_loss": 0.33687230181403277,
+      "acc": 0.7821612349914236,
+      "precision": 0.725,
+      "recall": 0.9985029940119761,
+      "tp": 667,
+      "fp": 253,
+      "tn": 245,
+      "fn": 1
+    },
+    {
+      "phase": "cycle1",
+      "epoch": 2,
+      "train_loss": 0.19626787123156758,
+      "acc": 0.8979416809605489,
+      "precision": 0.8597640891218873,
+      "recall": 0.9820359281437125,
+      "tp": 656,
+      "fp": 107,
+      "tn": 391,
+      "fn": 12
+    },
+    {
+      "phase": "cycle1",
+      "epoch": 3,
+      "train_loss": 0.15589870757809499,
+      "acc": 0.9228130360205832,
+      "precision": 0.9200581395348837,
+      "recall": 0.9476047904191617,
+      "tp": 633,
+      "fp": 55,
+      "tn": 443,
+      "fn": 35
+    },
+    {
+      "phase": "cycle1",
+      "epoch": 4,
+      "train_loss": 0.14618499349893593,
+      "acc": 0.7658662092624356,
+      "precision": 0.7098831030818279,
+      "recall": 1.0,
+      "tp": 668,
+      "fp": 273,
+      "tn": 225,
+      "fn": 0
+    },
+    {
+      "phase": "cycle1",
+      "epoch": 5,
+      "train_loss": 0.13223428678948704,
+      "acc": 0.9322469982847341,
+      "precision": 0.9095966620305981,
+      "recall": 0.9790419161676647,
+      "tp": 654,
+      "fp": 65,
+      "tn": 433,
+      "fn": 14
+    },
+    {
+      "phase": "cycle2",
+      "epoch": 1,
+      "train_loss": 0.05530428155683554,
+      "acc": 0.9882032667876588,
+      "precision": 1.0,
+      "recall": 0.9801223241590215,
+      "tp": 641,
+      "fp": 0,
+      "tn": 448,
+      "fn": 13
+    },
+    {
+      "phase": "cycle2",
+      "epoch": 2,
+      "train_loss": 0.03866490867370979,
+      "acc": 0.9800362976406534,
+      "precision": 0.9773413897280967,
+      "recall": 0.9892966360856269,
+      "tp": 647,
+      "fp": 15,
+      "tn": 433,
+      "fn": 7
+    },
+    {
+      "phase": "cycle2",
+      "epoch": 3,
+      "train_loss": 0.032899878513163484,
+      "acc": 0.9827586206896551,
+      "precision": 0.9968701095461658,
+      "recall": 0.9740061162079511,
+      "tp": 637,
+      "fp": 2,
+      "tn": 446,
+      "fn": 17
+    },
+    {
+      "phase": "cycle2",
+      "epoch": 4,
+      "train_loss": 0.02530782358147777,
+      "acc": 0.9800362976406534,
+      "precision": 1.0,
+      "recall": 0.9663608562691132,
+      "tp": 632,
+      "fp": 0,
+      "tn": 448,
+      "fn": 22
+    },
+    {
+      "phase": "cycle2",
+      "epoch": 5,
+      "train_loss": 0.027044157939366043,
+      "acc": 0.9609800362976406,
+      "precision": 0.9383070301291249,
+      "recall": 1.0,
+      "tp": 654,
+      "fp": 43,
+      "tn": 405,
+      "fn": 0
+    },
+    {
+      "phase": "cycle3",
+      "epoch": 1,
+      "train_loss": 0.010993390114357075,
+      "acc": 0.9943714821763602,
+      "precision": 1.0,
+      "recall": 0.9912536443148688,
+      "tp": 680,
+      "fp": 0,
+      "tn": 380,
+      "fn": 6
+    },
+    {
+      "phase": "cycle3",
+      "epoch": 2,
+      "train_loss": 0.006557446119065086,
+      "acc": 0.9915572232645403,
+      "precision": 0.9870503597122302,
+      "recall": 1.0,
+      "tp": 686,
+      "fp": 9,
+      "tn": 371,
+      "fn": 0
+    },
+    {
+      "phase": "cycle3",
+      "epoch": 3,
+      "train_loss": 0.013074100071874758,
+      "acc": 0.9906191369606003,
+      "precision": 0.9970588235294118,
+      "recall": 0.9883381924198251,
+      "tp": 678,
+      "fp": 2,
+      "tn": 378,
+      "fn": 8
+    },
+    {
+      "phase": "cycle3",
+      "epoch": 4,
+      "train_loss": 0.0168577466160059,
+      "acc": 0.9878048780487805,
+      "precision": 1.0,
+      "recall": 0.9810495626822158,
+      "tp": 673,
+      "fp": 0,
+      "tn": 380,
+      "fn": 13
+    },
+    {
+      "phase": "cycle3",
+      "epoch": 5,
+      "train_loss": 0.007000957698716471,
+      "acc": 0.9971857410881801,
+      "precision": 0.9985401459854014,
+      "recall": 0.9970845481049563,
+      "tp": 684,
+      "fp": 1,
+      "tn": 379,
+      "fn": 2
+    }
+  ],
+  "filter_history": [
+    {
+      "pos_in": 6653,
+      "neg_in": 5003,
+      "pos_removed": 94,
+      "pos_kept": 6559,
+      "neg_removed": 543,
+      "neg_kept": 4460,
+      "cycle": 1
+    },
+    {
+      "pos_in": 6559,
+      "neg_in": 4460,
+      "pos_removed": 0,
+      "pos_kept": 6559,
+      "neg_removed": 357,
+      "neg_kept": 4103,
+      "cycle": 2
+    }
+  ],
+  "checkpoint": "D:\\Projects\\test_for_senior_in_3d_team\\weights\\pre_aligner_best.pt",
+  "legacy_checkpoint": "D:\\Projects\\test_for_senior_in_3d_team\\weights\\z_head_slice_cls_best.pt",
+  "data_dir": "D:\\Projects\\test_for_senior_in_3d_team\\data\\cq500_train\\z_head_slice_cls"
+}

@@ -1,4 +1,14 @@
-data/
+# Data: ignore by default; track only light artifacts (see README)
+data/*
+!data/cq500_train/
+data/cq500_train/*
+!data/cq500_train/no_heads.txt
+!data/cq500_train/cq500_train_guides/
+!data/cq500_train/cq500_train_guides/**
+
+!data/train_logs/
+!data/train_logs/**
+
 venv/
 __pycache__/
 **/__pycache__/

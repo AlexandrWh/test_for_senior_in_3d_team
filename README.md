@@ -32,7 +32,7 @@ pip install -r requirements.txt
 | `utils/` | I/O NIfTI, углы, rigid-трансформы, парсинг guide-разметки, mask-eval |
 | `scripts/` | CLI: разметка → train → golden → метрики |
 | `weights/` | Чекпоинты `pre_aligner_best.pt`, `pose_regressor_best.pt` (после обучения) |
-| `data/` | Данные **не в git** — кладёте локально (см. ниже) |
+| `data/` | Volumes и маски локально; в git — только лёгкие артефакты (см. ниже) |
 
 **Точка входа inference:**
 
@@ -50,19 +50,26 @@ result = aligner.align("path/to/scan.nii.gz", device=torch.device("cuda"))
 
 ## Раскладка данных
 
-Volumes и маски **в репозиторий не кладём** — скачиваются отдельно ([ссылка в TASK.md](./TASK.md)).  
-**Сырую разметку после аннотатора** — кладём в git (лёгкие JSON).
+Volumes и маски **в git не коммитим** — скачиваются отдельно ([ссылка в TASK.md](./TASK.md)).
+
+**В git коммитим** (настроено в `.gitignore`):
+
+| Путь | Содержимое |
+|------|------------|
+| `data/cq500_train/no_heads.txt` | case_id без головы (негативы Z-cls) |
+| `data/cq500_train/cq500_train_guides/` | сырая JSON-разметка после аннотатора |
+| `data/train_logs/` | логи и history обучения |
 
 ```
 data/
 ├── cq500_train/                          # обучение
 │   ├── volumes/                          # ← NIfTI train (локально, не в git)
 │   │   └── CQ500CT*.nii.gz
-│   ├── no_heads.txt                      # case_id без головы (негативы Z-cls)
-│   ├── cq500_train_mpr_1mm/              # PNG для разметки (генерируется)
+│   ├── no_heads.txt                      # в git
+│   ├── cq500_train_mpr_1mm/              # PNG для разметки (генерируется, не в git)
 │   │   ├── manifest.json
 │   │   └── CQ500CT*_axial.png, *_coronal.png, *_sagittal.png
-│   ├── cq500_train_guides/               # ← сюда JSON после аннотатора (можно в git)
+│   ├── cq500_train_guides/               # в git — JSON после аннотатора
 │   │   └── CQ500CT*.json
 │   ├── cq500_train_guides_analysis/      # экспорт углов
 │   │   └── guide_labels.json
@@ -86,15 +93,15 @@ data/
 │   │   └── previews/
 │   └── mask_residual/                    # метрика по маскам глаз/ушей
 │
-├── train_logs/                           # логи обучения
+├── train_logs/                           # в git — логи обучения
 └── ...
 weights/
     ├── pre_aligner_best.pt
     └── pose_regressor_best.pt
 ```
 
-**Минимум для старта разметки:** положить train volumes в `data/cq500_train/volumes/`.  
-**После аннотатора:** JSON в `data/cq500_train/cq500_train_guides/`.
+**Минимум для старта разметки:** train volumes локально в `data/cq500_train/volumes/`.  
+**В репозиторий:** JSON из `cq500_train_guides/`, `no_heads.txt`, при желании `train_logs/`.
 
 ---
 

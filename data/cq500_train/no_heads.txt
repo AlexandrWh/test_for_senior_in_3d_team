@@ -1,0 +1,4 @@
+# Scans without head (negative-only crops for classifier)
+CQ500CT470
+CQ500CT237
+CQ500CT43
