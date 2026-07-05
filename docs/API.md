@@ -18,7 +18,7 @@ ALIGN_DEVICE=cuda docker compose up -d
 Локально:
 
 ```bash
-pip install -r requirements-api.txt
+pip install -r requirements.txt
 export ALIGN_DEVICE=cuda   # или cpu
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
@@ -86,6 +86,17 @@ python -u scripts/run_head_align_golden.py --service-url http://localhost:8000
 ```bash
 python -u scripts/run_head_align_golden.py --offline --device cuda
 ```
+
+## Переменные окружения
+
+| Переменная | По умолчанию | Описание |
+|------------|--------------|----------|
+| `ALIGN_DEVICE` | `auto` | `cpu`, `cuda` или `auto` (cuda если доступна) |
+| `PRE_ALIGN_CKPT` | `weights/pre_aligner_best.pt` | путь к весам Z-cls + PCA |
+| `POSE_CKPT` | `weights/pose_regressor_best.pt` | путь к весам pose CNN |
+| `CLS_THRESHOLD` | `0.5` | порог Z-классификатора |
+| `CLS_PAD` | `3` | pad срезов вокруг Z-span |
+| `CLS_MIN_HEAD_SLICES` | `10` | минимум срезов «голова» |
 
 ## Модули `app/`
 

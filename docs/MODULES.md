@@ -37,7 +37,8 @@ CNN для бинарной классификации одного аксиал
 
 - вход `[B, 1, Z, 72, 72]` после pre-align
 - spatial map + masked mean по Z → MLP → (rz, ry, rx) residual
-- `from_checkpoint()`, `save_checkpoint()`, `predict_angles()` для inference
+- `from_checkpoint()`, `save_checkpoint()` — загрузка/сохранение весов
+- inference углов — через `HeadAligner.predict_pose_angles()` (не отдельный метод модели)
 
 ### `head_aligner.py`
 
@@ -102,7 +103,8 @@ PCA на пороговой маске аксиального среза:
 3D rigid resampling через SimpleITK:
 
 - `apply_rigid_volume_zyx()` — rotvec + shift в voxels
-- `save_volume_nifti`, `load_volume_nifti`
+- `save_volume_nifti`, `load_volume_nifti`, `volume_to_nifti_bytes`
+- `compute_full_align_affine_4x4()` — 4×4 rigid input → aligned output
 - affine вокруг центра объёма, опционально nearest-neighbor для масок
 
 ### `guide_labels.py`
@@ -136,7 +138,7 @@ Golden-метрика по маскам **после** HeadAligner:
 |------|------|
 | `main.py` | FastAPI: `/health`, `POST /align` → ZIP |
 | `align_service.py` | HeadAligner wrapper, сборка `aligned.nii.gz` + `meta.json` |
-| `config.py` | env: `ALIGN_DEVICE`, пути к весам |
+| `config.py` | env: `ALIGN_DEVICE`, `PRE_ALIGN_CKPT`, `POSE_CKPT`, cls-пороги |
 
 См. [API.md](./API.md).
 
@@ -146,10 +148,11 @@ Golden-метрика по маскам **после** HeadAligner:
 
 ```
 scripts/*  →  models/*  →  utils/*
-                ↓
-            datasets/*
-                ↓
-            paths.py
+                ↓              ↑
+            datasets/*         │
+                ↓              │
+            paths.py      app/*
 ```
 
-Inference: только `HeadAligner` + `paths` + `utils` (I/O, angles, rigid).
+**Inference (без обучения):** `HeadAligner` + `paths` + `utils` (I/O, angles, rigid).  
+**HTTP:** `app/` → `HeadAligner`. Пакет `datasets/` нужен только для train-скриптов.

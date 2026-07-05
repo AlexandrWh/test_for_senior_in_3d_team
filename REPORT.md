@@ -3,9 +3,8 @@
 Исследование и реализация препроцессинга для приведения 3D КТ головного мозга к канонической ориентации (задание [TASK.md](./TASK.md)).
 
 **Воспроизведение:** [README.md](./README.md), [PIPELINE_COMMANDS.txt](./PIPELINE_COMMANDS.txt)  
-**Код:** [docs/SCRIPTS.md](./docs/SCRIPTS.md), [docs/MODULES.md](./docs/MODULES.md)
-
-> HTTP API, Docker и affine matrix — запланированы отдельно, в этой итерации не реализованы.
+**Код:** [docs/SCRIPTS.md](./docs/SCRIPTS.md), [docs/MODULES.md](./docs/MODULES.md)  
+**HTTP API:** [docs/API.md](./docs/API.md)
 
 ---
 
@@ -25,7 +24,7 @@
 
 **Допуск из ТЗ:** ±5° по каждой оси.
 
-**Выход для продукта:** выровненный 3D NIfTI головы + (в будущем) affine матрица преобразования.
+**Выход для продукта:** выровненный 3D NIfTI головы + affine матрица 4×4 (`affine_4x4_input_to_output` в meta / API).
 
 ---
 
@@ -146,6 +145,12 @@ rx_label = rx_aug          # rz_gt по сагиттали нет
 
 Оркестрация inference без обучения: 4 mm infer → pose angles → 1 mm apply.
 
+### 5.4 HTTP API (`app/`)
+
+FastAPI-сервис поверх **HeadAligner**: upload NIfTI → ZIP (`aligned.nii.gz` + `meta.json`).  
+Golden eval может идти через HTTP (`run_head_align_golden.py --service-url`) или in-process (`--offline`).  
+Docker: `docker compose up --build -d`, веса монтируются из `./weights`.
+
 ---
 
 ## 6. Какие loss и метрики использовали
@@ -235,10 +240,15 @@ Sanity-кейсы из ТЗ: `CQ500CT06`, `CQ500CT243` (уже ровные), `C
 
 ---
 
-## Следующий этап
+## 8. Деплой и inference
 
-- [x] FastAPI + Docker + golden через HTTP
-- [ ] docker-compose с GPU profile (опционально)
-- [ ] экспорт affine в отдельный файл NIfTI/sidecar (сейчас в meta.json)
+| Способ | Команда / эндпоинт |
+|--------|-------------------|
+| In-process Python | `HeadAligner.from_checkpoints().align(path)` |
+| HTTP API | `POST /align` → ZIP с `aligned.nii.gz` + `meta.json` |
+| Docker | `docker compose up -d` |
+| Golden batch | `run_head_align_golden.py --service-url` или `--offline` |
 
-Текущий inference: `HeadAligner` in-process или `POST /align`.
+Affine 4×4 входит в `meta.json` (`affine_4x4_input_to_output`). Отдельный sidecar-файл — опциональное улучшение.
+
+**Возможные доработки:** GPU profile в docker-compose, отдельный экспорт affine, sagittal-разметка для rx.

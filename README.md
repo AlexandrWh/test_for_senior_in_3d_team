@@ -4,9 +4,8 @@
 
 **Отчёт по исследованию:** [REPORT.md](./REPORT.md)  
 **Справочник по скриптам:** [docs/SCRIPTS.md](./docs/SCRIPTS.md)  
-**Справочник по модулям:** [docs/MODULES.md](./docs/MODULES.md)
-
-> HTTP API, Docker и экспорт affine — **следующий этап** (см. конец отчёта).
+**Справочник по модулям:** [docs/MODULES.md](./docs/MODULES.md)  
+**HTTP API:** [docs/API.md](./docs/API.md)
 
 ---
 
@@ -15,10 +14,10 @@
 ```bash
 python -m venv venv
 # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt   # train + offline inference + HTTP API
 ```
 
-Нужен GPU для обучения и golden eval (`--device cuda`). CPU — только для разметки и экспорта labels.
+Нужен GPU для обучения и быстрого inference (`--device cuda` / `ALIGN_DEVICE=cuda`). CPU достаточно для разметки, экспорта labels и API на небольших объёмах.
 
 ---
 
@@ -31,6 +30,7 @@ pip install -r requirements.txt
 | `datasets/` | PyTorch-датасеты для train Z-cls и pose |
 | `utils/` | I/O NIfTI, углы, rigid-трансформы, парсинг guide-разметки, mask-eval |
 | `scripts/` | CLI: разметка → train → golden → метрики |
+| `app/` | FastAPI-сервис: `POST /align` → ZIP с NIfTI + meta (affine 4×4) |
 | `weights/` | Чекпоинты `pre_aligner_best.pt`, `pose_regressor_best.pt` (после обучения) |
 | `data/` | Volumes и маски локально; в git — только лёгкие артефакты (см. ниже) |
 
@@ -44,6 +44,7 @@ aligner = HeadAligner.from_checkpoints(device=torch.device("cuda"))
 result = aligner.align("path/to/scan.nii.gz", device=torch.device("cuda"))
 # result.volume_aligned_1mm  — numpy [Z,Y,X] @ 1 mm, brain window
 # result.rz_pca_rad, result.rz_pose_rad, result.ry_pose_rad, result.rx_pose_rad
+# result.meta["affine_4x4_input_to_output"]  — 4×4 rigid (через to_json_dict / API)
 ```
 
 ---
@@ -187,13 +188,13 @@ curl -X POST http://localhost:8000/align \
 - `aligned.nii.gz` — голова @ 1 mm (brain window, как в офлайн golden)
 - `meta.json` — `prealign`, `pose`, `affine_4x4_input_to_output`, `status`
 
-Переменные окружения: `ALIGN_DEVICE` (`cpu`/`cuda`), `PRE_ALIGN_CKPT`, `POSE_CKPT`.  
+Переменные окружения: `ALIGN_DEVICE` (`cpu`/`cuda`/`auto`), `PRE_ALIGN_CKPT`, `POSE_CKPT`, `CLS_THRESHOLD`, `CLS_PAD`, `CLS_MIN_HEAD_SLICES`.  
 Веса монтируются из `./weights` (см. `docker-compose.yml`).
 
 Локально без Docker:
 
 ```bash
-pip install -r requirements-api.txt
+pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 

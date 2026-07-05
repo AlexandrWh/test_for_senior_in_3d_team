@@ -78,7 +78,7 @@ QC ручных guides + экспорт численных targets для обу
 
 Прогон **HeadAligner** на test volumes: infer @ 4 mm, apply @ 1 mm.
 
-- **API (default):** `--service-url http://localhost:8000` или env `ALIGN_SERVICE_URL`
+- **API:** `--service-url http://localhost:8000` (после `docker compose up`) или env `ALIGN_SERVICE_URL`
 - **Офлайн:** `--offline --device cuda`
 - **Вход:** `data/cq500_test/volumes/`
 - **Выход:** `align/volumes/`, `align/meta/{case}.json`, `align/results.csv`

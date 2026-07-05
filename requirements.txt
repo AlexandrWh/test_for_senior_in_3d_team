@@ -1,3 +1,4 @@
+# Core: CT I/O, training, offline inference
 numpy>=1.24
 torch>=2.1
 SimpleITK>=2.3
@@ -6,6 +7,8 @@ matplotlib>=3.8
 pandas>=2.1
 tqdm>=4.66
 Pillow>=10.0
+
+# HTTP API (FastAPI service + golden eval client)
 fastapi>=0.115
 uvicorn[standard]>=0.30
 python-multipart>=0.0.9
